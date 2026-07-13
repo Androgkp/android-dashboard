@@ -92,21 +92,18 @@ export default function Deployments({
             
             <div>
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5">PM2 APPLICATION NAME</label>
-              {/* ponytail: input list datalist resolves autocompletion without hardcoding */}
-              <input
-                type="text"
-                list="pm2-deployments-list"
-                placeholder="e.g. dashboard-api"
+              {/* ponytail: populate with live running PM2 processes from the server */}
+              <select
                 value={appName}
                 onChange={e => setAppName(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
                 required
-              />
-              <datalist id="pm2-deployments-list">
+              >
+                <option value="">— Select running process —</option>
                 {pm2Processes.map(p => (
-                  <option key={p.name} value={p.name}>{p.name}</option>
+                  <option key={p.name} value={p.name}>{p.name} ({p.status})</option>
                 ))}
-              </datalist>
+              </select>
             </div>
 
             <div>
