@@ -250,12 +250,21 @@ export default function Settings({
           <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider text-zinc-300">
             <GitPullRequest className="h-5 w-5 text-blue-400" /> Feature Switches
           </h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-zinc-200 font-semibold block text-sm">Git Deployments Manager</span>
-              <span className="text-zinc-500 text-xs mt-0.5 block">Enable or disable the repository builds & hot-reload deployments panel</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-200 font-semibold block text-sm">Git Deployments Manager</span>
+                <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md">BETA</span>
+              </div>
+              <span className="text-zinc-500 text-xs block">Enable or disable the repository builds & hot-reload deployments panel</span>
+              <div className="pt-1.5">
+                <div className="text-[10px] text-amber-400/90 leading-normal bg-amber-500/5 border border-amber-500/10 p-3 rounded-xl max-w-xl">
+                  <span className="font-bold block mb-0.5">⚠️ CPU & RAM WARNING</span>
+                  Running builds executes repository pulls and builds directly on your device. On phone-servers (UserLAnd/Termux), compilation tasks can cause massive CPU spikes, device heating, or memory crashes if you run low on RAM.
+                </div>
+              </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer select-none">
+            <label className="relative inline-flex items-center cursor-pointer select-none shrink-0 mt-0.5">
               <input 
                 type="checkbox" 
                 checked={enableDeployments}

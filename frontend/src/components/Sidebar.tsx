@@ -49,14 +49,23 @@ export default function Sidebar({ currentTab, setCurrentTab, enableDeployments }
             <button
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                 isActive 
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/10' 
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
               }`}
             >
-              <Icon className="h-4.5 w-4.5" />
-              {item.label}
+              <div className="flex items-center gap-3">
+                <Icon className="h-4.5 w-4.5" />
+                <span>{item.label}</span>
+              </div>
+              {item.id === 'deployments' && (
+                <span className={`text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                  isActive 
+                    ? 'bg-white/20 border-white/10 text-white' 
+                    : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                }`}>BETA</span>
+              )}
             </button>
           );
         })}
