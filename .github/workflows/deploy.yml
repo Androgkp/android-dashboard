@@ -1,0 +1,38 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  # Triggers whenever you push to main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-size: 18
+
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy to Release Branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .  # Deploys the entire built repository
+          branch: release  # To a new branch named 'release'
+
+      - name: Trigger Android Server Pull
+        run: |
+          curl -X POST "${{ secrets.DASHBOARD_URL }}/api/deployments/trigger" \
+            -H "Content-Type: application/json" \
+            -d '{"appName": "dashboard-api"}'
