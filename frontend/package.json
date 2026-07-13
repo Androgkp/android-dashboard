@@ -1,0 +1,32 @@
+{
+  "name": "androgkp-dashboard-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "echo 'No linting required'",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "androgkp-dashboard": "file:..",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.368.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.12.3",
+    "socket.io-client": "^4.7.5",
+    "tailwind-merge": "^2.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0-alpha.14",
+    "@types/node": "^20.12.7",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "tailwindcss": "^4.0.0-alpha.14",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.8"
+  }
+}
