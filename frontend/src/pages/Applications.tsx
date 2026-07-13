@@ -57,6 +57,7 @@ export default function Applications({
 }: ApplicationsProps) {
   const [activeForm, setActiveForm] = useState<'add' | 'edit' | null>(null);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const [deletingApp, setDeletingApp] = useState<Application | null>(null);
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [pm2Name, setPm2Name] = useState('');
@@ -343,7 +344,7 @@ export default function Applications({
 
                 {/* Delete button — all apps are user-managed, none are hardcoded */}
                 <button
-                  onClick={() => onDeleteApp(app.id)}
+                  onClick={() => setDeletingApp(app)}
                   title="Delete Application Card"
                   className="p-2 bg-red-950/20 hover:bg-red-950/40 text-red-400 rounded-xl transition-all ml-auto cursor-pointer"
                 >
@@ -354,6 +355,46 @@ export default function Applications({
           );
         })}
       </div>
+
+      {/* Deletion Confirmation Modal */}
+      {deletingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/60">
+          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-red-500/20 text-white space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-red-400">
+              <AlertCircle className="h-6 w-6 shrink-0" />
+              <h3 className="text-lg font-bold font-display">Remove Application Card?</h3>
+            </div>
+            <div className="space-y-2 text-sm text-zinc-300 leading-relaxed">
+              <p>
+                Are you sure you want to remove the card for <strong className="text-white">{deletingApp.name}</strong>?
+              </p>
+              <div className="bg-red-500/5 border border-red-500/10 p-3 rounded-xl text-xs text-red-300">
+                <span className="font-semibold block mb-0.5">⚠️ Important:</span>
+                This action only deletes the visual shortcut/telemetry card on this dashboard. It will <strong>NOT</strong> terminate or delete the underlying PM2 process, Docker container, or server files on your system.
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingApp(null)}
+                className="px-4 py-2 text-xs font-bold text-zinc-400 bg-zinc-850 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteApp(deletingApp.id);
+                  setDeletingApp(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 active:bg-red-700 rounded-lg transition-colors cursor-pointer"
+              >
+                Delete Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
