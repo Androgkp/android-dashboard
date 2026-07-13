@@ -18,6 +18,7 @@ interface SystemMetrics {
   diskTotal: number;
   batteryLevel: number;
   batteryCharging: boolean;
+  batteryHealth: string;
   temperature: number;
   networkUpload: number;
   networkDownload: number;

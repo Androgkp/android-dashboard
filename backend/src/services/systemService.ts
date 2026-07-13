@@ -1,5 +1,6 @@
 import si from 'systeminformation';
 import fs from 'fs';
+import path from 'path';
 import { CONFIG } from '../config';
 
 export interface SystemMetrics {
@@ -10,6 +11,7 @@ export interface SystemMetrics {
   diskTotal: number;
   batteryLevel: number;
   batteryCharging: boolean;
+  batteryHealth: string;
   temperature: number;
   networkUpload: number; // KB/s
   networkDownload: number; // KB/s
@@ -19,6 +21,37 @@ export interface SystemMetrics {
 
 // Global cached network stats to calculate speeds
 let lastNetworkStats = { rx: 0, tx: 0, time: Date.now() };
+
+// Dynamic battery sysfs discovery
+let discoveredBatteryPath: string | null = null;
+let batterySearchAttempted = false;
+
+function getBatteryPath(): string | null {
+  if (batterySearchAttempted) return discoveredBatteryPath;
+  batterySearchAttempted = true;
+  
+  try {
+    const powerSupplyPath = '/sys/class/power_supply';
+    if (fs.existsSync(powerSupplyPath)) {
+      const dirs = fs.readdirSync(powerSupplyPath);
+      // 1. Look for a directory that contains both capacity and status files
+      for (const dir of dirs) {
+        const fullPath = path.join(powerSupplyPath, dir);
+        if (fs.existsSync(path.join(fullPath, 'capacity')) && fs.existsSync(path.join(fullPath, 'status'))) {
+          discoveredBatteryPath = fullPath;
+          return discoveredBatteryPath;
+        }
+      }
+      // 2. Look for any directory that has 'battery' in its name
+      const batteryDir = dirs.find(d => d.toLowerCase().includes('battery'));
+      if (batteryDir) {
+        discoveredBatteryPath = path.join(powerSupplyPath, batteryDir);
+        return discoveredBatteryPath;
+      }
+    }
+  } catch (err) {}
+  return null;
+}
 
 // Helper to read Linux sysfs file safely
 function readSysfsNumber(filePath: string, divisor = 1): number | null {
@@ -75,6 +108,7 @@ export class SystemService {
         diskTotal: 128 * 1024 * 1024 * 1024,
         batteryLevel: Math.round(this.mockBattery),
         batteryCharging: this.mockBatteryCharging,
+        batteryHealth: 'Good',
         temperature: Math.round(this.mockTemp),
         networkDownload: Math.round(this.mockNetworkRx),
         networkUpload: Math.round(this.mockNetworkTx),
@@ -115,11 +149,27 @@ export class SystemService {
         // network stats error
       }
 
-      // Read Android SysFS Battery
-      // UserLAnd Ubuntu can read some files under /sys if permission allows
-      let batteryLevel = readSysfsNumber('/sys/class/power_supply/battery/capacity') ?? 100;
-      const batteryStatusStr = readSysfsString('/sys/class/power_supply/battery/status') || 'Unknown';
-      const batteryCharging = batteryStatusStr.toLowerCase() === 'charging' || batteryStatusStr.toLowerCase() === 'full';
+      // Read Android SysFS Battery with dynamic discovery
+      let batteryLevel = 100;
+      let batteryCharging = false;
+      let batteryHealth = 'Good';
+
+      const batPath = getBatteryPath();
+      if (batPath) {
+        batteryLevel = readSysfsNumber(path.join(batPath, 'capacity')) ?? 100;
+        const batteryStatusStr = readSysfsString(path.join(batPath, 'status')) || 'Unknown';
+        batteryCharging = batteryStatusStr.toLowerCase() === 'charging' || batteryStatusStr.toLowerCase() === 'full';
+        batteryHealth = readSysfsString(path.join(batPath, 'health')) || 'Good';
+      } else {
+        // Fallback to systeminformation
+        try {
+          const siBat = await si.battery();
+          if (siBat.hasBattery) {
+            batteryLevel = siBat.percent;
+            batteryCharging = siBat.isCharging || siBat.acConnected;
+          }
+        } catch (err) {}
+      }
 
       // Read Android SysFS Temperature
       // Typically zone0 or zone1. We will search for thermal zone temp
@@ -144,6 +194,7 @@ export class SystemService {
         diskTotal: mainDisk.size,
         batteryLevel,
         batteryCharging,
+        batteryHealth,
         temperature: Math.round(temperature),
         networkDownload: Math.round(downloadRate),
         networkUpload: Math.round(uploadRate),
@@ -161,6 +212,7 @@ export class SystemService {
         diskTotal: 1,
         batteryLevel: 0,
         batteryCharging: false,
+        batteryHealth: 'Unknown',
         temperature: 0,
         networkDownload: 0,
         networkUpload: 0,

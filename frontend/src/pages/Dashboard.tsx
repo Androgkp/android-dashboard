@@ -29,6 +29,7 @@ interface SystemMetrics {
   diskTotal: number;
   batteryLevel: number;
   batteryCharging: boolean;
+  batteryHealth: string;
   temperature: number;
   networkUpload: number;
   networkDownload: number;
@@ -173,7 +174,9 @@ export default function Dashboard({ metrics, history, onTriggerBackup, onFlushLo
           </div>
           <div className="mt-4">
             <div className="text-3xl font-extrabold font-display text-white">{metrics.batteryLevel}%</div>
-            <div className="text-xs text-zinc-500 mt-1">{metrics.batteryCharging ? 'Charging' : 'Discharging'}</div>
+            <div className="text-xs text-zinc-500 mt-1">
+              {metrics.batteryCharging ? 'Charging' : 'Discharging'} • Health: <span className={metrics.batteryHealth.toLowerCase() === 'good' ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>{metrics.batteryHealth}</span>
+            </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${metrics.batteryCharging ? 'bg-emerald-400' : 'bg-emerald-500'}`} 
