@@ -20,7 +20,7 @@ jobs:
 
       - name: Install & Build
         run: |
-          npm install
+          npm run install:all
           npm run build
 
       - name: Deploy to Release Branch
