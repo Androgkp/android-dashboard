@@ -133,20 +133,30 @@ export class SystemService {
       let downloadRate = 0;
       let uploadRate = 0;
       try {
-        // ponytail: /proc/net/dev is always readable on Linux/Alpine/UserLAnd without root
-        // si.networkStats() fails on restricted envs; this is the reliable fallback
         const procNetDev = fs.readFileSync('/proc/net/dev', 'utf-8');
         const lines = procNetDev.trim().split('\n').slice(2); // skip 2 header lines
 
         let bestRx = 0, bestTx = 0, bestIface = '';
         for (const line of lines) {
-          const parts = line.trim().split(/\s+/);
-          const iface = parts[0].replace(':', '');
+          const colonIdx = line.indexOf(':');
+          if (colonIdx === -1) continue;
+          
+          const iface = line.substring(0, colonIdx).trim();
           if (iface === 'lo') continue; // skip loopback
-          const rx = parseInt(parts[1], 10);
-          const tx = parseInt(parts[9], 10);
+          
+          const statsPart = line.substring(colonIdx + 1).trim();
+          const parts = statsPart.split(/\s+/);
+          
+          const rx = parseInt(parts[0], 10); // 1st column after colon is Receive bytes
+          const tx = parseInt(parts[8], 10); // 9th column after colon is Transmit bytes
+          if (isNaN(rx) || isNaN(tx)) continue;
+
           // pick interface with most traffic (the active one)
-          if (rx + tx > bestRx + bestTx) { bestRx = rx; bestTx = tx; bestIface = iface; }
+          if (rx + tx > bestRx + bestTx) {
+            bestRx = rx;
+            bestTx = tx;
+            bestIface = iface;
+          }
         }
 
         if (bestIface) {
