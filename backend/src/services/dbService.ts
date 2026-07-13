@@ -30,6 +30,7 @@ export interface SystemSettings {
   discordWebhook: string;
   telegramToken: string;
   telegramChatId: string;
+  enableDeployments: boolean;
 }
 
 interface DatabaseSchema {
@@ -47,7 +48,8 @@ const DEFAULT_DB: DatabaseSchema = {
     batteryThreshold: 20,
     discordWebhook: '',
     telegramToken: '',
-    telegramChatId: ''
+    telegramChatId: '',
+    enableDeployments: false
   },
   // ponytail: no hardcoded apps — user adds their own via the UI
   applications: [],

@@ -56,6 +56,7 @@ interface SystemSettings {
   discordWebhook: string;
   telegramToken: string;
   telegramChatId: string;
+  enableDeployments: boolean;
 }
 
 interface BackupItem {
@@ -178,6 +179,13 @@ export default function App() {
 
     return () => clearInterval(pm2Interval);
   }, []);
+
+  // ponytail: fallback redirect to dashboard if deployments gets disabled
+  useEffect(() => {
+    if (settings && !settings.enableDeployments && currentTab === 'deployments') {
+      setCurrentTab('dashboard');
+    }
+  }, [settings, currentTab]);
 
   // Sync actions
   const handleRestartPm2 = async (name: string | number) => {
@@ -425,7 +433,11 @@ export default function App() {
     <div className="flex min-h-screen bg-[#09090b]">
       {/* Sidebar - Desktop Layout */}
       <div className="hidden md:block flex-shrink-0">
-        <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <Sidebar 
+          currentTab={currentTab} 
+          setCurrentTab={setCurrentTab} 
+          enableDeployments={settings?.enableDeployments ?? false}
+        />
       </div>
 
       {/* Main Panel */}
@@ -493,7 +505,7 @@ export default function App() {
               loading={loadingBackups}
             />
           )}
-          {currentTab === 'deployments' && (
+          {currentTab === 'deployments' && settings?.enableDeployments && (
             <Deployments 
               logs={deployLogs}
               pm2Processes={pm2Processes}

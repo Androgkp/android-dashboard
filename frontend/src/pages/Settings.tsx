@@ -10,7 +10,8 @@ import {
   Trash2, 
   Plus,
   Moon,
-  Sun
+  Sun,
+  GitPullRequest
 } from 'lucide-react';
 
 interface SystemSettings {
@@ -22,6 +23,7 @@ interface SystemSettings {
   discordWebhook: string;
   telegramToken: string;
   telegramChatId: string;
+  enableDeployments: boolean;
 }
 
 interface SettingsProps {
@@ -47,6 +49,7 @@ export default function Settings({
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [telegramToken, setTelegramToken] = useState('');
   const [telegramChatId, setTelegramChatId] = useState('');
+  const [enableDeployments, setEnableDeployments] = useState(false);
 
   const [newEmail, setNewEmail] = useState('');
 
@@ -61,6 +64,7 @@ export default function Settings({
       setDiscordWebhook(settings.discordWebhook);
       setTelegramToken(settings.telegramToken);
       setTelegramChatId(settings.telegramChatId);
+      setEnableDeployments(settings.enableDeployments);
     }
   }, [settings]);
 
@@ -74,7 +78,8 @@ export default function Settings({
       batteryThreshold,
       discordWebhook,
       telegramToken,
-      telegramChatId
+      telegramChatId,
+      enableDeployments
     });
   };
 
@@ -237,6 +242,28 @@ export default function Settings({
             >
               <Sun className="h-4 w-4" /> Light (Material Clean)
             </button>
+          </div>
+        </div>
+
+        {/* Feature Settings Card */}
+        <div className="glass-panel p-5 rounded-2xl border border-zinc-800/40 space-y-4">
+          <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider text-zinc-300">
+            <GitPullRequest className="h-5 w-5 text-blue-400" /> Feature Switches
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-zinc-200 font-semibold block text-sm">Git Deployments Manager</span>
+              <span className="text-zinc-500 text-xs mt-0.5 block">Enable or disable the repository builds & hot-reload deployments panel</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={enableDeployments}
+                onChange={e => setEnableDeployments(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
+            </label>
           </div>
         </div>
 

@@ -12,15 +12,17 @@ import {
 interface SidebarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
+  enableDeployments: boolean;
 }
 
-export default function Sidebar({ currentTab, setCurrentTab }: SidebarProps) {
+export default function Sidebar({ currentTab, setCurrentTab, enableDeployments }: SidebarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'apps', label: 'Applications', icon: Boxes },
     { id: 'pm2', label: 'PM2 Manager', icon: Terminal },
     { id: 'backups', label: 'Backups', icon: Archive },
-    { id: 'deployments', label: 'Deployments', icon: GitPullRequest },
+    // ponytail: conditionally display deployment tab if enabled in settings
+    ...(enableDeployments ? [{ id: 'deployments', label: 'Deployments', icon: GitPullRequest }] : []),
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
