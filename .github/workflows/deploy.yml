@@ -21,6 +21,7 @@ jobs:
       - name: Install & Build
         run: |
           npm run install:all
+          npm install --prefix frontend @tailwindcss/oxide-linux-x64-gnu
           npm run build
 
       - name: Deploy to Release Branch
