@@ -9,5 +9,8 @@ export const CONFIG = {
   DATA_DIR: process.env.DATA_DIR || path.join(__dirname, '../../../.data'),
   JWT_SECRET: process.env.JWT_SECRET || 'serverops_super_secret_key_123',
   MOCK_PM2: process.env.MOCK_PM2 === 'true' || process.platform === 'win32', // Auto-mock PM2 on Windows
-  MOCK_SYSTEM: process.env.MOCK_SYSTEM === 'true' || process.platform === 'win32' // Auto-mock Linux sysfs on Windows
+  MOCK_SYSTEM: process.env.MOCK_SYSTEM === 'true' || process.platform === 'win32', // Auto-mock Linux sysfs on Windows
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:admin@serverops.local'
 };

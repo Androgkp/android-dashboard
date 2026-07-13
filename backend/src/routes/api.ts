@@ -4,6 +4,7 @@ import { Pm2Service } from '../services/pm2Service';
 import { dbService } from '../services/dbService';
 import { BackupService } from '../services/backupService';
 import { DeploymentService } from '../services/deploymentService';
+import { CONFIG } from '../config';
 
 export const apiRouter = Router();
 
@@ -21,6 +22,20 @@ const authMiddleware = (req: Request, res: Response, next: any) => {
 };
 
 apiRouter.use(authMiddleware);
+
+// --- Push Notifications ---
+apiRouter.get('/vapid-public-key', (req, res) => {
+  res.json({ publicKey: CONFIG.VAPID_PUBLIC_KEY });
+});
+
+apiRouter.post('/push-subscribe', (req, res) => {
+  const subscription = req.body;
+  if (!subscription || !subscription.endpoint) {
+    return res.status(400).json({ error: 'Invalid subscription' });
+  }
+  dbService.addPushSubscription(subscription);
+  res.status(201).json({});
+});
 
 // --- System Routes ---
 apiRouter.get('/system', async (req, res) => {

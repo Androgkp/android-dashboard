@@ -1,6 +1,16 @@
 import { dbService } from './dbService';
 import { SystemMetrics } from './systemService';
 import { Server } from 'socket.io';
+import webpush from 'web-push';
+import { CONFIG } from '../config';
+
+if (CONFIG.VAPID_PUBLIC_KEY && CONFIG.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    CONFIG.VAPID_SUBJECT,
+    CONFIG.VAPID_PUBLIC_KEY,
+    CONFIG.VAPID_PRIVATE_KEY
+  );
+}
 
 // Tracking last notified timestamps to enforce a 5-minute cooldown
 const cooldowns: Record<string, number> = {
@@ -99,6 +109,28 @@ export class NotificationService {
         });
       } catch (err: any) {
         console.error('Failed to send Telegram alert:', err.message);
+      }
+    }
+
+    // D. Web Push Notifications
+    if (CONFIG.VAPID_PUBLIC_KEY && CONFIG.VAPID_PRIVATE_KEY) {
+      const subs = dbService.getPushSubscriptions();
+      const payload = JSON.stringify({
+        title: 'ServerOps Alert',
+        body: message,
+        icon: '/favicon.ico'
+      });
+
+      for (const sub of subs) {
+        try {
+          await webpush.sendNotification(sub, payload);
+        } catch (err: any) {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            dbService.removePushSubscription(sub.endpoint);
+          } else {
+            console.error('Failed to send web push:', err.message);
+          }
+        }
       }
     }
   }

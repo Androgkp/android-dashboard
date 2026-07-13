@@ -37,6 +37,7 @@ interface DatabaseSchema {
   settings: SystemSettings;
   applications: Application[];
   allowedEmails: string[];
+  pushSubscriptions: any[];
 }
 
 const DEFAULT_DB: DatabaseSchema = {
@@ -53,7 +54,8 @@ const DEFAULT_DB: DatabaseSchema = {
   },
   // ponytail: no hardcoded apps — user adds their own via the UI
   applications: [],
-  allowedEmails: ['admin@serverops.local']
+  allowedEmails: ['admin@serverops.local'],
+  pushSubscriptions: []
 };
 
 class DbService {
@@ -138,6 +140,29 @@ class DbService {
   removeAllowedEmail(email: string) {
     this.data.allowedEmails = this.data.allowedEmails.filter(e => e !== email);
     this.saveData(this.data);
+  }
+
+  getPushSubscriptions(): any[] {
+    return this.data.pushSubscriptions || [];
+  }
+
+  addPushSubscription(sub: any) {
+    if (!this.data.pushSubscriptions) {
+      this.data.pushSubscriptions = [];
+    }
+    // Prevent duplicates by checking endpoint
+    const exists = this.data.pushSubscriptions.find(s => s.endpoint === sub.endpoint);
+    if (!exists) {
+      this.data.pushSubscriptions.push(sub);
+      this.saveData(this.data);
+    }
+  }
+
+  removePushSubscription(endpoint: string) {
+    if (this.data.pushSubscriptions) {
+      this.data.pushSubscriptions = this.data.pushSubscriptions.filter(s => s.endpoint !== endpoint);
+      this.saveData(this.data);
+    }
   }
 }
 

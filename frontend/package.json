@@ -10,12 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "serverops-dashboard": "file:..",
     "clsx": "^2.1.0",
     "lucide-react": "^0.368.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.12.3",
+    "serverops-dashboard": "file:..",
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.2.2"
   },
@@ -27,6 +27,9 @@
     "@vitejs/plugin-react": "^4.3.0",
     "tailwindcss": "^4.0.0-alpha.14",
     "typescript": "^5.4.5",
-    "vite": "^5.2.8"
+    "vite": "^5.2.8",
+    "vite-plugin-pwa": "^1.3.0",
+    "workbox-core": "^7.4.1",
+    "workbox-window": "^7.4.1"
   }
 }
