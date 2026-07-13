@@ -32,7 +32,7 @@ interface Application {
   url: string;
   status: 'running' | 'stopped' | 'error' | 'unknown';
   pm2Name?: string;
-  type: 'n8n' | 'filebrowser' | 'beszel' | 'cloudflared' | 'custom';
+  type: string;
 }
 
 interface Pm2Process {
@@ -496,6 +496,7 @@ export default function App() {
           {currentTab === 'deployments' && (
             <Deployments 
               logs={deployLogs}
+              pm2Processes={pm2Processes}
               onTriggerDeploy={handleTriggerDeploy}
               onRefreshLogs={handleRefreshDeployLogs}
               loading={loadingDeployments}

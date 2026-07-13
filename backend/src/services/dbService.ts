@@ -18,7 +18,7 @@ export interface Application {
   cpu?: number;
   memory?: number;
   uptime?: number;
-  type: 'n8n' | 'filebrowser' | 'beszel' | 'cloudflared' | 'custom';
+  type: string;
 }
 
 export interface SystemSettings {

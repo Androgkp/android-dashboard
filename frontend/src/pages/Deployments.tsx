@@ -17,8 +17,19 @@ interface DeploymentLog {
   log: string;
 }
 
+interface Pm2Process {
+  id: number;
+  pid: number;
+  name: string;
+  status: 'online' | 'stopped' | 'errored' | 'unknown';
+  cpu: number;
+  memory: number;
+  uptime: number;
+}
+
 interface DeploymentsProps {
   logs: DeploymentLog[];
+  pm2Processes: Pm2Process[];
   onTriggerDeploy: (appName: string, repoPath?: string) => void;
   onRefreshLogs: () => void;
   loading: boolean;
@@ -26,6 +37,7 @@ interface DeploymentsProps {
 
 export default function Deployments({ 
   logs, 
+  pm2Processes,
   onTriggerDeploy, 
   onRefreshLogs,
   loading 
@@ -80,16 +92,21 @@ export default function Deployments({
             
             <div>
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5">PM2 APPLICATION NAME</label>
-              <select
+              {/* ponytail: input list datalist resolves autocompletion without hardcoding */}
+              <input
+                type="text"
+                list="pm2-deployments-list"
+                placeholder="e.g. dashboard-api"
                 value={appName}
                 onChange={e => setAppName(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-              >
-                <option value="dashboard-api">dashboard-api (Dashboard Server)</option>
-                <option value="n8n">n8n (Workflow Engine)</option>
-                <option value="filebrowser">filebrowser (Files App)</option>
-                <option value="beszel">beszel (Monitor Core)</option>
-              </select>
+                required
+              />
+              <datalist id="pm2-deployments-list">
+                {pm2Processes.map(p => (
+                  <option key={p.name} value={p.name}>{p.name}</option>
+                ))}
+              </datalist>
             </div>
 
             <div>
