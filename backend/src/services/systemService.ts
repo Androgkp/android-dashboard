@@ -160,15 +160,36 @@ export class SystemService {
         const batteryStatusStr = readSysfsString(path.join(batPath, 'status')) || 'Unknown';
         batteryCharging = batteryStatusStr.toLowerCase() === 'charging' || batteryStatusStr.toLowerCase() === 'full';
         batteryHealth = readSysfsString(path.join(batPath, 'health')) || 'Good';
-      } else {
-        // Fallback to systeminformation
+      }
+
+      // Fallbacks for UserLAnd / Termux where sysfs might be missing or read 100 constantly
+      if (!batPath || batteryLevel === 100 || batteryLevel === 0) {
         try {
-          const siBat = await si.battery();
-          if (siBat.hasBattery) {
-            batteryLevel = siBat.percent;
-            batteryCharging = siBat.isCharging || siBat.acConnected;
+          const { execSync } = require('child_process');
+          const termuxBat = JSON.parse(execSync('termux-battery-status', { encoding: 'utf-8', stdio: 'pipe' }));
+          if (termuxBat && termuxBat.percentage !== undefined) {
+            batteryLevel = termuxBat.percentage;
+            batteryCharging = termuxBat.status === 'CHARGING' || termuxBat.status === 'FULL';
+            batteryHealth = termuxBat.health || 'Good';
           }
-        } catch (err) {}
+        } catch (e1) {
+          try {
+            const { execSync } = require('child_process');
+            const dumpsys = execSync('/system/bin/dumpsys battery || dumpsys battery', { encoding: 'utf-8', stdio: 'pipe' });
+            const levelMatch = dumpsys.match(/level:\s*(\d+)/i);
+            if (levelMatch) batteryLevel = parseInt(levelMatch[1], 10);
+            const statusMatch = dumpsys.match(/status:\s*(\d+)/i);
+            if (statusMatch) batteryCharging = (statusMatch[1] === '2' || statusMatch[1] === '5');
+          } catch (e2) {
+            try {
+              const siBat = await si.battery();
+              if (siBat.hasBattery) {
+                batteryLevel = siBat.percent;
+                batteryCharging = siBat.isCharging || siBat.acConnected;
+              }
+            } catch (err) {}
+          }
+        }
       }
 
       // Read Android SysFS Temperature
@@ -186,8 +207,21 @@ export class SystemService {
         temperature = cpuTemp.main || 40;
       }
 
+      let finalCpuUsage = Math.round(cpu.currentLoad);
+      // Fallback for UserLAnd where /proc/stat might be restricted causing si.currentLoad to return 0
+      if (finalCpuUsage === 0) {
+        try {
+          const { execSync } = require('child_process');
+          const topOut = execSync('top -b -n 1 || top -n 1', { encoding: 'utf-8', stdio: 'pipe' });
+          const idleMatch = topOut.match(/(\d+)(?:\.\d+)?\s*%?\s*id\b/i) || topOut.match(/(\d+)(?:\.\d+)?\s*%?\s*idle\b/i);
+          if (idleMatch) {
+            finalCpuUsage = Math.max(0, Math.min(100, 100 - parseInt(idleMatch[1], 10)));
+          }
+        } catch(e) {}
+      }
+
       return {
-        cpuUsage: Math.round(cpu.currentLoad),
+        cpuUsage: finalCpuUsage,
         memoryUsed: mem.active,
         memoryTotal: mem.total,
         diskUsed: mainDisk.used,
