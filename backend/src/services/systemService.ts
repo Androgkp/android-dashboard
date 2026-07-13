@@ -133,21 +133,48 @@ export class SystemService {
       let downloadRate = 0;
       let uploadRate = 0;
       try {
-        const netStats = await si.networkStats();
-        // Sum up speeds across active interfaces
-        const activeNet = netStats.find(n => n.operstate === 'up') || netStats[0];
-        if (activeNet) {
+        // ponytail: /proc/net/dev is always readable on Linux/Alpine/UserLAnd without root
+        // si.networkStats() fails on restricted envs; this is the reliable fallback
+        const procNetDev = fs.readFileSync('/proc/net/dev', 'utf-8');
+        const lines = procNetDev.trim().split('\n').slice(2); // skip 2 header lines
+
+        let bestRx = 0, bestTx = 0, bestIface = '';
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          const iface = parts[0].replace(':', '');
+          if (iface === 'lo') continue; // skip loopback
+          const rx = parseInt(parts[1], 10);
+          const tx = parseInt(parts[9], 10);
+          // pick interface with most traffic (the active one)
+          if (rx + tx > bestRx + bestTx) { bestRx = rx; bestTx = tx; bestIface = iface; }
+        }
+
+        if (bestIface) {
           const now = Date.now();
           const durationSec = (now - lastNetworkStats.time) / 1000;
           if (durationSec > 0 && lastNetworkStats.rx > 0) {
-            downloadRate = Math.max(0, (activeNet.rx_bytes - lastNetworkStats.rx) / 1024 / durationSec);
-            uploadRate = Math.max(0, (activeNet.tx_bytes - lastNetworkStats.tx) / 1024 / durationSec);
+            downloadRate = Math.max(0, (bestRx - lastNetworkStats.rx) / 1024 / durationSec);
+            uploadRate   = Math.max(0, (bestTx - lastNetworkStats.tx) / 1024 / durationSec);
           }
-          lastNetworkStats = { rx: activeNet.rx_bytes, tx: activeNet.tx_bytes, time: now };
+          lastNetworkStats = { rx: bestRx, tx: bestTx, time: now };
         }
       } catch (err) {
-        // network stats error
+        // /proc/net/dev not available — try si as last resort
+        try {
+          const netStats = await si.networkStats();
+          const activeNet = netStats.find(n => n.iface !== 'lo' && (n.rx_bytes + n.tx_bytes) > 0) || netStats[0];
+          if (activeNet) {
+            const now = Date.now();
+            const durationSec = (now - lastNetworkStats.time) / 1000;
+            if (durationSec > 0 && lastNetworkStats.rx > 0) {
+              downloadRate = Math.max(0, (activeNet.rx_bytes - lastNetworkStats.rx) / 1024 / durationSec);
+              uploadRate   = Math.max(0, (activeNet.tx_bytes - lastNetworkStats.tx) / 1024 / durationSec);
+            }
+            lastNetworkStats = { rx: activeNet.rx_bytes, tx: activeNet.tx_bytes, time: now };
+          }
+        } catch (_) {}
       }
+
 
       // Read Android SysFS Battery with dynamic discovery
       let batteryLevel = 100;

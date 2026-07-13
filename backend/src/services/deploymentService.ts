@@ -58,7 +58,7 @@ export class DeploymentService {
 
     // Run in background asynchronously so it doesn't block the API
     (async () => {
-      const targetCwd = repoPath || path.join(__dirname, '../../../../'); // defaults to project root
+      const targetCwd = repoPath || path.resolve(__dirname, '../../../'); // defaults to project root
       
       try {
         if (!fs.existsSync(targetCwd)) {
