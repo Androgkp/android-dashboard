@@ -24,6 +24,8 @@ let mockPm2Processes: Pm2Process[] = [
 ];
 
 export class Pm2Service {
+  private static cachedPm2Command: string | null = null;
+
   private static runCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
@@ -34,6 +36,44 @@ export class Pm2Service {
         }
       });
     });
+  }
+
+  private static async getPm2Command(): Promise<string> {
+    if (this.cachedPm2Command) return this.cachedPm2Command;
+
+    if (CONFIG.MOCK_PM2) {
+      this.cachedPm2Command = 'pm2';
+      return 'pm2';
+    }
+
+    const pathsToTry = [
+      'pm2',
+      '/usr/bin/pm2',
+      '/usr/local/bin/pm2',
+      '/opt/node/bin/pm2',
+      '~/.npm-global/bin/pm2',
+      'npx pm2',
+      'node_modules/.bin/pm2'
+    ];
+
+    for (const p of pathsToTry) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          exec(`${p} -v`, (error) => {
+            if (error) reject(error);
+            else resolve();
+          });
+        });
+        this.cachedPm2Command = p;
+        console.log(`Found PM2 executable path: ${p}`);
+        return p;
+      } catch (err) {
+        // try next path
+      }
+    }
+
+    this.cachedPm2Command = 'pm2';
+    return 'pm2';
   }
 
   static async listProcesses(): Promise<Pm2Process[]> {
@@ -53,8 +93,9 @@ export class Pm2Service {
     }
 
     try {
+      const pm2Cmd = await this.getPm2Command();
       // pm2 jlist returns JSON details of running processes
-      const stdout = await this.runCommand('pm2 jlist');
+      const stdout = await this.runCommand(`${pm2Cmd} jlist`);
       const rawList = JSON.parse(stdout);
       
       return rawList.map((proc: any) => ({
@@ -89,7 +130,8 @@ export class Pm2Service {
     }
 
     try {
-      await this.runCommand(`pm2 restart ${nameOrId}`);
+      const pm2Cmd = await this.getPm2Command();
+      await this.runCommand(`${pm2Cmd} restart ${nameOrId}`);
       return true;
     } catch (err) {
       console.error(`PM2 restart error for ${nameOrId}:`, err);
@@ -112,7 +154,8 @@ export class Pm2Service {
     }
 
     try {
-      await this.runCommand(`pm2 stop ${nameOrId}`);
+      const pm2Cmd = await this.getPm2Command();
+      await this.runCommand(`${pm2Cmd} stop ${nameOrId}`);
       return true;
     } catch (err) {
       console.error(`PM2 stop error for ${nameOrId}:`, err);
@@ -128,7 +171,8 @@ export class Pm2Service {
     }
 
     try {
-      await this.runCommand(`pm2 delete ${nameOrId}`);
+      const pm2Cmd = await this.getPm2Command();
+      await this.runCommand(`${pm2Cmd} delete ${nameOrId}`);
       return true;
     } catch (err) {
       console.error(`PM2 delete error for ${nameOrId}:`, err);
@@ -154,8 +198,9 @@ export class Pm2Service {
     }
 
     try {
-      await this.runCommand(`pm2 start "${scriptPath}" --name "${name}"`);
-      await this.runCommand('pm2 save');
+      const pm2Cmd = await this.getPm2Command();
+      await this.runCommand(`${pm2Cmd} start "${scriptPath}" --name "${name}"`);
+      await this.runCommand(`${pm2Cmd} save`);
       return true;
     } catch (err) {
       console.error(`PM2 start error for ${name}:`, err);

@@ -40,6 +40,7 @@ interface ApplicationsProps {
   onRestartPm2: (name: string) => void;
   onStopPm2: (name: string) => void;
   onAddApp: (app: Omit<Application, 'id' | 'status'>) => void;
+  onUpdateApp: (id: string, updates: Partial<Application>) => void;
   onDeleteApp: (id: string) => void;
   onViewLogs: (name: string) => void;
 }
@@ -50,10 +51,12 @@ export default function Applications({
   onRestartPm2, 
   onStopPm2, 
   onAddApp, 
+  onUpdateApp,
   onDeleteApp, 
   onViewLogs 
 }: ApplicationsProps) {
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [activeForm, setActiveForm] = useState<'add' | 'edit' | null>(null);
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [pm2Name, setPm2Name] = useState('');
@@ -62,12 +65,28 @@ export default function Applications({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onAddApp({ name, url, pm2Name: pm2Name || undefined, type });
+
+    if (activeForm === 'add') {
+      onAddApp({ name, url, pm2Name: pm2Name || undefined, type });
+    } else if (activeForm === 'edit' && selectedAppId) {
+      onUpdateApp(selectedAppId, { name, url, pm2Name: pm2Name || undefined, type });
+    }
+
     setName('');
     setUrl('');
     setPm2Name('');
     setType('custom');
-    setShowAddForm(false);
+    setActiveForm(null);
+    setSelectedAppId(null);
+  };
+
+  const handleEditClick = (app: Application) => {
+    setSelectedAppId(app.id);
+    setName(app.name);
+    setUrl(app.url);
+    setPm2Name(app.pm2Name || '');
+    setType(app.type);
+    setActiveForm('edit');
   };
 
   const formatBytes = (bytes: number, decimals = 1) => {
@@ -97,17 +116,29 @@ export default function Applications({
           <p className="text-sm text-zinc-400 mt-1">Manage and access services running on this server</p>
         </div>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            if (activeForm === 'add') {
+              setActiveForm(null);
+            } else {
+              setName('');
+              setUrl('');
+              setPm2Name('');
+              setType('custom');
+              setActiveForm('add');
+            }
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
         >
           <Plus className="h-4 w-4" /> Add Application
         </button>
       </div>
 
-      {/* Add App Form */}
-      {showAddForm && (
+      {/* Form (Add or Edit) */}
+      {activeForm && (
         <form onSubmit={handleSubmit} className="glass-panel p-5 rounded-2xl border-blue-500/20 max-w-xl space-y-4">
-          <h3 className="font-semibold text-white">Add New Service Card</h3>
+          <h3 className="font-semibold text-white">
+            {activeForm === 'add' ? 'Add New Service Card' : 'Edit Service Card'}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5">SERVICE NAME</label>
@@ -158,7 +189,10 @@ export default function Applications({
           <div className="flex gap-2 justify-end pt-2">
             <button
               type="button"
-              onClick={() => setShowAddForm(false)}
+              onClick={() => {
+                setActiveForm(null);
+                setSelectedAppId(null);
+              }}
               className="px-4 py-2 text-xs font-bold text-zinc-400 bg-zinc-850 hover:bg-zinc-800 rounded-lg cursor-pointer"
             >
               Cancel
@@ -283,6 +317,15 @@ export default function Applications({
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
+
+                {/* Edit Button */}
+                <button
+                  onClick={() => handleEditClick(app)}
+                  title="Edit Application Details"
+                  className="p-2 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-850 text-zinc-200 rounded-xl transition-all cursor-pointer"
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
 
                 {/* Delete button (only show for custom apps added by user) */}
                 {app.id !== 'n8n' && app.id !== 'filebrowser' && app.id !== 'beszel' && app.id !== 'cloudflared' && app.id !== 'dashboard-api' && (

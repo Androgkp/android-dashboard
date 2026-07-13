@@ -256,6 +256,19 @@ export default function App() {
     }
   };
 
+  const handleUpdateApp = async (id: string, updates: Partial<Application>) => {
+    try {
+      const updatedApp = await fetch(`/api/apps/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      }).then(r => r.json());
+      setApps(prev => prev.map(a => a.id === id ? updatedApp : a));
+    } catch (err) {
+      console.error('Failed to update app:', err);
+    }
+  };
+
   const handleDeleteApp = async (id: string) => {
     try {
       const res = await fetch(`/api/apps/${id}`, { method: 'DELETE' }).then(r => r.json());
@@ -455,6 +468,7 @@ export default function App() {
               onRestartPm2={handleRestartPm2}
               onStopPm2={handleStopPm2}
               onAddApp={handleAddApp}
+              onUpdateApp={handleUpdateApp}
               onDeleteApp={handleDeleteApp}
               onViewLogs={handleViewLogsForApp}
             />
