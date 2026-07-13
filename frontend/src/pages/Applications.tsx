@@ -96,14 +96,15 @@ export default function Applications({
 
   // Cross-reference DB Application with live PM2 Process telemetry
   const getAppTelemetry = (app: Application) => {
-    if (!app.pm2Name) return { status: 'unknown', cpu: 0, memory: 0 };
+    if (!app.pm2Name) return { status: 'unknown', cpu: 0, memory: 0, matched: false };
     const pm2Proc = pm2Processes.find(p => p.name === app.pm2Name);
-    if (!pm2Proc) return { status: 'stopped', cpu: 0, memory: 0 };
-    
+    // ponytail: unknown when no match — could be wrong name, not yet loaded, or missing
+    if (!pm2Proc) return { status: 'unknown', cpu: 0, memory: 0, matched: false };
     return {
       status: pm2Proc.status === 'online' ? 'running' : (pm2Proc.status === 'stopped' ? 'stopped' : 'error'),
       cpu: pm2Proc.cpu,
-      memory: pm2Proc.memory
+      memory: pm2Proc.memory,
+      matched: true
     };
   };
 
@@ -177,13 +178,17 @@ export default function Applications({
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5">PM2 PROCESS NAME (FOR TELEMETRY BINDING)</label>
-              <input
-                type="text"
-                placeholder="e.g. code-server"
+              {/* ponytail: dropdown of live PM2 processes to prevent typos causing sync issues */}
+              <select
                 value={pm2Name}
                 onChange={e => setPm2Name(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-              />
+              >
+                <option value="">— No PM2 binding —</option>
+                {pm2Processes.map(p => (
+                  <option key={p.name} value={p.name}>{p.name} ({p.status})</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex gap-2 justify-end pt-2">
@@ -257,6 +262,15 @@ export default function Applications({
                       <span className="text-zinc-500 font-medium block">Memory</span>
                       <span className="text-zinc-200 font-bold font-display mt-0.5 block">
                         {isRunning ? formatBytes(telemetry.memory) : '-'}
+                      </span>
+                    </div>
+                    {/* ponytail: show binding name so user can debug mismatches instantly */}
+                    <div className="col-span-2 border-t border-zinc-800/60 pt-2">
+                      <span className="text-zinc-600 font-medium block">PM2 Binding</span>
+                      <span className={`font-mono mt-0.5 block truncate ${
+                        telemetry.matched ? 'text-emerald-500' : 'text-amber-500'
+                      }`}>
+                        {app.pm2Name}{!telemetry.matched ? ' ⚠ no match' : ''}
                       </span>
                     </div>
                   </div>
