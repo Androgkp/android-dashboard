@@ -74,11 +74,37 @@ export class DeploymentService {
           return;
         }
 
-        // 2. Build
-        const buildSuccess = await runCmd('npm run build', targetCwd);
-        if (!buildSuccess) {
-          logItem.status = 'failed';
-          return;
+        // 2. Resolve deployment/build command from package.json
+        const pkgPath = path.join(targetCwd, 'package.json');
+        let buildCmd = '';
+
+        if (fs.existsSync(pkgPath)) {
+          try {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+            if (pkg.scripts) {
+              const hasYarn = fs.existsSync(path.join(targetCwd, 'yarn.lock'));
+              const hasPnpm = fs.existsSync(path.join(targetCwd, 'pnpm-lock.yaml'));
+              const runner = hasYarn ? 'yarn' : (hasPnpm ? 'pnpm' : 'npm');
+
+              // ponytail: read 'build' command from package.json
+              if (pkg.scripts.build) {
+                buildCmd = `${runner} run build`;
+              }
+            }
+          } catch (err: any) {
+            updateLog(`Warning: Failed to parse package.json: ${err.message}\n`);
+          }
+        }
+
+        // 3. Build
+        if (buildCmd) {
+          const buildSuccess = await runCmd(buildCmd, targetCwd);
+          if (!buildSuccess) {
+            logItem.status = 'failed';
+            return;
+          }
+        } else {
+          updateLog(`No build or deploy script found in package.json. Skipping build step.\n\n`);
         }
 
         // 3. Restart PM2 process
