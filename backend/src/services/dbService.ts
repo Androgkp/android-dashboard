@@ -49,13 +49,8 @@ const DEFAULT_DB: DatabaseSchema = {
     telegramToken: '',
     telegramChatId: ''
   },
-  applications: [
-    { id: 'n8n', name: 'n8n', url: 'https://n8n.androgkp.in', status: 'unknown', pm2Name: 'n8n', type: 'n8n' },
-    { id: 'filebrowser', name: 'File Browser', url: 'https://files.androgkp.in', status: 'unknown', pm2Name: 'filebrowser', type: 'filebrowser' },
-    { id: 'beszel', name: 'Beszel', url: 'https://admin.androgkp.in', status: 'unknown', pm2Name: 'beszel', type: 'beszel' },
-    { id: 'cloudflared', name: 'Cloudflare Tunnel', url: '', status: 'unknown', pm2Name: 'cloudflare-tunnel', type: 'cloudflared' },
-    { id: 'dashboard-api', name: 'Dashboard API', url: 'https://dashboard.androgkp.in', status: 'unknown', pm2Name: 'dashboard-api', type: 'custom' }
-  ],
+  // ponytail: no hardcoded apps — user adds their own via the UI
+  applications: [],
   allowedEmails: ['admin@androgkp.in']
 };
 

@@ -341,16 +341,14 @@ export default function Applications({
                   <Settings className="h-4 w-4" />
                 </button>
 
-                {/* Delete button (only show for custom apps added by user) */}
-                {app.id !== 'n8n' && app.id !== 'filebrowser' && app.id !== 'beszel' && app.id !== 'cloudflared' && app.id !== 'dashboard-api' && (
-                  <button
-                    onClick={() => onDeleteApp(app.id)}
-                    title="Delete Application Card"
-                    className="p-2 bg-red-950/20 hover:bg-red-950/40 text-red-400 rounded-xl transition-all ml-auto cursor-pointer"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
+                {/* Delete button — all apps are user-managed, none are hardcoded */}
+                <button
+                  onClick={() => onDeleteApp(app.id)}
+                  title="Delete Application Card"
+                  className="p-2 bg-red-950/20 hover:bg-red-950/40 text-red-400 rounded-xl transition-all ml-auto cursor-pointer"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
           );
