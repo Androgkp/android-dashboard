@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 import { CONFIG } from '../config';
+import mockPm2ProcessesBase from '../mocks/pm2.mock';
 
 export interface Pm2Process {
   id: number;
@@ -14,14 +15,8 @@ export interface Pm2Process {
   errLogPath: string;
 }
 
-// In-memory mock PM2 state for local development/Windows
-let mockPm2Processes: Pm2Process[] = [
-  { id: 0, pid: 1024, name: 'dashboard-api', status: 'online', cpu: 1, memory: 42 * 1024 * 1024, uptime: 3600, outLogPath: 'mock_api_out.log', errLogPath: 'mock_api_err.log' },
-  { id: 1, pid: 1025, name: 'n8n', status: 'online', cpu: 2, memory: 180 * 1024 * 1024, uptime: 3600, outLogPath: 'mock_n8n_out.log', errLogPath: 'mock_n8n_err.log' },
-  { id: 2, pid: 1026, name: 'cloudflare-tunnel', status: 'online', cpu: 0.5, memory: 28 * 1024 * 1024, uptime: 3600, outLogPath: 'mock_tunnel_out.log', errLogPath: 'mock_tunnel_err.log' },
-  { id: 3, pid: 1027, name: 'filebrowser', status: 'stopped', cpu: 0, memory: 0, uptime: 0, outLogPath: 'mock_fb_out.log', errLogPath: 'mock_fb_err.log' },
-  { id: 4, pid: 1028, name: 'beszel', status: 'online', cpu: 0.2, memory: 12 * 1024 * 1024, uptime: 3600, outLogPath: 'mock_beszel_out.log', errLogPath: 'mock_beszel_err.log' }
-];
+// ponytail: mutable copy so mock actions (stop/restart) work in-memory during dev
+let mockPm2Processes = CONFIG.MOCK_PM2 ? [...mockPm2ProcessesBase] : [];
 
 export class Pm2Service {
   private static cachedPm2Command: string | null = null;
