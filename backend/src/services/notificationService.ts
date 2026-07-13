@@ -77,7 +77,7 @@ export class NotificationService {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: `🚨 **AndrogKP Dashboard Notification** 🚨\n${message}`
+            content: `🚨 **ServerOps Console Alert** 🚨\n${message}`
           })
         });
       } catch (err: any) {
@@ -94,7 +94,7 @@ export class NotificationService {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: settings.telegramChatId,
-            text: `🚨 AndrogKP Dashboard Alert 🚨\n\n${message}`
+            text: `🚨 ServerOps Console Alert 🚨\n\n${message}`
           })
         });
       } catch (err: any) {

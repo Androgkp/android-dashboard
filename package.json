@@ -1,7 +1,7 @@
 {
-  "name": "androgkp-dashboard",
+  "name": "serverops-dashboard",
   "version": "1.0.0",
-  "description": "Android Dashboard for UserLAnd Ubuntu",
+  "description": "ServerOps Console for lightweight process & system management",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend --legacy-peer-deps",
     "dev:backend": "npm run dev --prefix backend",

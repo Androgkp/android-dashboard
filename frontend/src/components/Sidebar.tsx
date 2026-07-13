@@ -34,7 +34,7 @@ export default function Sidebar({ currentTab, setCurrentTab, enableDeployments }
           <Server className="h-6 w-6" />
         </div>
         <div>
-          <span className="font-extrabold text-sm tracking-wide text-white font-display block uppercase">AndrogKP</span>
+          <span className="font-extrabold text-sm tracking-wide text-white font-display block uppercase">ServerOps</span>
           <span className="text-[10px] font-bold text-zinc-500 font-mono tracking-wider">v1.0.0 • ANDROID</span>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function Sidebar({ currentTab, setCurrentTab, enableDeployments }
       {/* Footer Info */}
       <div className="p-4 border-t border-zinc-900 text-center">
         <span className="text-[10px] font-semibold text-zinc-600 font-mono">
-          © 2026 androgkp.in
+          © 2026 serverops.local
         </span>
       </div>
     </div>

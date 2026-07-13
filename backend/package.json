@@ -1,7 +1,7 @@
 {
-  "name": "androgkp-dashboard-backend",
+  "name": "serverops-dashboard-backend",
   "version": "1.0.0",
-  "description": "Backend for AndrogKP Dashboard",
+  "description": "Backend for ServerOps Console",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
@@ -9,7 +9,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "androgkp-dashboard": "file:..",
+    "serverops-dashboard": "file:..",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

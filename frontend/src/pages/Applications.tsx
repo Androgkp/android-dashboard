@@ -169,7 +169,7 @@ export default function Applications({
               <label className="block text-xs font-semibold text-zinc-400 mb-1.5">ACCESS URL (OPTIONAL)</label>
               <input
                 type="url"
-                placeholder="https://service.androgkp.in"
+                placeholder="https://service.local"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"

@@ -122,7 +122,7 @@ export default function App() {
 
       // Trigger standard browser Notification if permitted
       if (Notification.permission === 'granted') {
-        new Notification('AndrogKP Server Alert', {
+        new Notification('ServerOps Alert', {
           body: alertData.message,
           icon: '/favicon.ico'
         });
@@ -159,7 +159,7 @@ export default function App() {
       setApps(appsRes);
       setPm2Processes(pm2Res);
       setSettings(settingsRes);
-      setAllowedEmails(settingsRes.allowedEmails || ['admin@androgkp.in']);
+      setAllowedEmails(settingsRes.allowedEmails || ['admin@serverops.local']);
       setBackups(backupsRes);
       setDeployLogs(deployRes);
     } catch (err) {

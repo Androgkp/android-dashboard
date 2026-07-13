@@ -53,7 +53,7 @@ setTimeout(() => {
 // Start Server
 server.listen(CONFIG.PORT, () => {
   console.log(`===================================================`);
-  console.log(`🚀 AndrogKP Dashboard running on http://localhost:${CONFIG.PORT}`);
+  console.log(`🚀 ServerOps Console running on http://localhost:${CONFIG.PORT}`);
   console.log(`🔧 Environment: ${CONFIG.ENV}`);
   console.log(`📦 Mocking PM2: ${CONFIG.MOCK_PM2}`);
   console.log(`💻 Mocking System Metrics: ${CONFIG.MOCK_SYSTEM}`);

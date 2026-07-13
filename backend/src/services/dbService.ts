@@ -53,7 +53,7 @@ const DEFAULT_DB: DatabaseSchema = {
   },
   // ponytail: no hardcoded apps — user adds their own via the UI
   applications: [],
-  allowedEmails: ['admin@androgkp.in']
+  allowedEmails: ['admin@serverops.local']
 };
 
 class DbService {

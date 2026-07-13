@@ -295,7 +295,7 @@ export default function Settings({
         <form onSubmit={handleAddEmailSubmit} className="flex gap-2">
           <input
             type="email"
-            placeholder="e.g. co-admin@androgkp.in"
+            placeholder="e.g. co-admin@serverops.local"
             value={newEmail}
             onChange={e => setNewEmail(e.target.value)}
             className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
