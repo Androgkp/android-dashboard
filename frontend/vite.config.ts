@@ -14,11 +14,8 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       registerType: 'autoUpdate',
-      injectRegister: false,
-      pwaAssets: {
-        disabled: false,
-        config: true,
-      },
+      injectRegister: 'auto',
+      pwaAssets: false,
       manifest: {
         name: 'ServerOps Console',
         short_name: 'ServerOps',
@@ -28,9 +25,16 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/favicon.ico',
-            sizes: '64x64 32x32 24x24 16x16',
-            type: 'image/x-icon'
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
