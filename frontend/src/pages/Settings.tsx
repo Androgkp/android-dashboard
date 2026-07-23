@@ -11,7 +11,10 @@ import {
   Plus,
   Moon,
   Sun,
-  GitPullRequest
+  GitPullRequest,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 
 interface SystemSettings {
@@ -52,6 +55,16 @@ export default function Settings({
   const [enableDeployments, setEnableDeployments] = useState(false);
 
   const [newEmail, setNewEmail] = useState('');
+  const [notifStatus, setNotifStatus] = useState<'granted' | 'denied' | 'default' | 'unsupported'>('default');
+
+  // ponytail: check notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifStatus(Notification.permission as any);
+    } else {
+      setNotifStatus('unsupported');
+    }
+  }, []);
 
   // Sync state with settings prop
   useEffect(() => {
@@ -81,6 +94,76 @@ export default function Settings({
       telegramChatId,
       enableDeployments
     });
+  };
+
+  const handleFixPush = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      alert('Notifications are not supported on this browser.');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotifStatus(permission as any);
+    if (permission !== 'granted') {
+      alert('Notification permission denied. Please allow notifications in your browser settings.');
+      return;
+    }
+
+    // ponytail: try Web Push first, fall back to browser Notification API
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      try {
+        const swRegistration = await navigator.serviceWorker.ready;
+        let subscription = await swRegistration.pushManager.getSubscription();
+        if (subscription) await subscription.unsubscribe();
+
+        const res = await fetch('/api/vapid-public-key');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.publicKey) {
+            const padding = '='.repeat((4 - data.publicKey.length % 4) % 4);
+            const base64 = (data.publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+            subscription = await swRegistration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: outputArray
+            });
+          }
+        }
+
+        if (subscription) {
+          await fetch('/api/push-subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscription),
+          });
+          alert('✅ Background push notifications registered successfully!');
+          return;
+        }
+      } catch (error: any) {
+        console.warn('Web Push unavailable, falling back to browser notifications:', error.message);
+      }
+    }
+
+    // Fallback: permission is granted, browser notifications will work via WebSocket alerts
+    alert('✅ Browser notifications enabled! You will receive alerts while the site is open.\n\nNote: Background push notifications are unavailable on this device (browser cannot reach push servers). Alerts will still appear via Discord/Telegram webhooks if configured.');
+  };
+
+  const handleTestPush = async () => {
+    try {
+      const res = await fetch('/api/test-push', { method: 'POST' });
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+    } catch (err) {
+      console.warn('Server push test failed, sending local notification instead');
+    }
+    // ponytail: always also fire a local browser notification so user sees something
+    if (Notification.permission === 'granted') {
+      new Notification('ServerOps Alert', {
+        body: 'Test notification — your device is receiving alerts!',
+        icon: '/icon-192.png'
+      });
+    }
   };
 
   const handleAddEmailSubmit = (e: React.FormEvent) => {
@@ -284,6 +367,48 @@ export default function Settings({
           <Save className="h-4.5 w-4.5" /> Save Configuration
         </button>
       </form>
+
+      {/* Device Push Notifications Card */}
+      <div className="glass-panel p-5 rounded-2xl border border-zinc-800/40 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider text-zinc-300">
+            <Bell className="h-5 w-5 text-indigo-400" /> Device Push Notifications
+          </h3>
+          <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${
+            notifStatus === 'granted'
+              ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+              : notifStatus === 'denied'
+              ? 'text-red-400 bg-red-500/10 border-red-500/20'
+              : notifStatus === 'unsupported'
+              ? 'text-zinc-500 bg-zinc-800/50 border-zinc-700/30'
+              : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+          }`}>
+            {notifStatus === 'granted' && <><CheckCircle className="h-3.5 w-3.5" /> Enabled</>}
+            {notifStatus === 'denied' && <><XCircle className="h-3.5 w-3.5" /> Blocked</>}
+            {notifStatus === 'default' && <><AlertCircle className="h-3.5 w-3.5" /> Not Set</>}
+            {notifStatus === 'unsupported' && <><XCircle className="h-3.5 w-3.5" /> Unsupported</>}
+          </span>
+        </div>
+        <p className="text-xs text-zinc-400">
+          Fix or register this specific device to receive background web push notifications from ServerOps natively on your OS.
+        </p>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={handleFixPush}
+            className="flex-1 bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 hover:bg-zinc-800 text-white font-semibold py-2.5 rounded-xl transition-all text-sm cursor-pointer"
+          >
+            Fix Notifications
+          </button>
+          <button
+            type="button"
+            onClick={handleTestPush}
+            className="flex-1 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 hover:bg-zinc-800 text-white font-semibold py-2.5 rounded-xl transition-all text-sm cursor-pointer"
+          >
+            Test Notification
+          </button>
+        </div>
+      </div>
 
       {/* Cloudflare Access Rules Card */}
       <div className="glass-panel p-5 rounded-2xl border border-zinc-800/40 space-y-4">

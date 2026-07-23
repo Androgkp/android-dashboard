@@ -188,8 +188,8 @@ export default function App() {
               body: JSON.stringify(subscription),
             });
           }
-        } catch (error) {
-          console.error('Push Subscription Error', error);
+        } catch (error: any) {
+          console.warn('Web Push background registration skipped (unsupported or blocked by network/OS):', error.message);
         }
       }
     }

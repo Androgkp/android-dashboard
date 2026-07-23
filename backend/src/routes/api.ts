@@ -37,6 +37,13 @@ apiRouter.post('/push-subscribe', (req, res) => {
   res.status(201).json({});
 });
 
+import { NotificationService } from '../services/notificationService';
+
+apiRouter.post('/test-push', async (req, res) => {
+  await NotificationService.sendAlert('test', 'This is a test notification to verify your device is successfully receiving web push alerts!');
+  res.json({ success: true });
+});
+
 // --- System Routes ---
 apiRouter.get('/system', async (req, res) => {
   try {
