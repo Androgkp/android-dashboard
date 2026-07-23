@@ -34,7 +34,14 @@ apiRouter.post('/push-subscribe', (req, res) => {
     return res.status(400).json({ error: 'Invalid subscription' });
   }
   dbService.addPushSubscription(subscription);
+  console.log(`[PUSH] New subscription registered. Endpoint: ${subscription.endpoint.substring(0, 60)}...`);
   res.status(201).json({});
+});
+
+// Debug: list stored subscriptions (endpoint prefix only for safety)
+apiRouter.get('/push-subscriptions', (req, res) => {
+  const subs = dbService.getPushSubscriptions();
+  res.json({ count: subs.length, endpoints: subs.map((s: any) => s.endpoint.substring(0, 80) + '...') });
 });
 
 import { NotificationService } from '../services/notificationService';
