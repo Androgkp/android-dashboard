@@ -47,8 +47,28 @@ apiRouter.get('/push-subscriptions', (req, res) => {
 import { NotificationService } from '../services/notificationService';
 
 apiRouter.post('/test-push', async (req, res) => {
-  await NotificationService.sendAlert('test', 'This is a test notification to verify your device is successfully receiving web push alerts!');
-  res.json({ success: true });
+  const subs = dbService.getPushSubscriptions();
+  if (subs.length === 0) return res.json({ success: false, message: 'No subscriptions registered', results: [] });
+
+  const webpush = require('web-push');
+  const payload = JSON.stringify({ title: 'ServerOps Alert', body: 'Test notification — your device is receiving alerts!', icon: '/icon-192.png' });
+  const results: any[] = [];
+
+  for (const sub of subs) {
+    const endpointShort = sub.endpoint.substring(0, 70) + '...';
+    try {
+      await webpush.sendNotification(sub, payload);
+      results.push({ endpoint: endpointShort, status: 'sent' });
+    } catch (err: any) {
+      results.push({ endpoint: endpointShort, status: 'failed', error: err.message, statusCode: err.statusCode });
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        dbService.removePushSubscription(sub.endpoint);
+      }
+    }
+  }
+
+  console.log('[TEST-PUSH] Results:', JSON.stringify(results, null, 2));
+  res.json({ success: true, results });
 });
 
 // --- System Routes ---

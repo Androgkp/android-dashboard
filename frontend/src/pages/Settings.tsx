@@ -153,7 +153,13 @@ export default function Settings({
   const handleTestPush = async () => {
     try {
       const res = await fetch('/api/test-push', { method: 'POST' });
-      if (!res.ok) throw new Error('Server returned ' + res.status);
+      if (res.ok) {
+        const data = await res.json();
+        const summary = data.results?.map((r: any) =>
+          `${r.status === 'sent' ? '✅' : '❌'} ${r.endpoint}\n${r.error ? '   Error: ' + r.error : ''}`
+        ).join('\n') || 'No results';
+        alert(`Push Results (${data.results?.length ?? 0} devices):\n\n${summary}`);
+      }
     } catch (err) {
       console.warn('Server push test failed, sending local notification instead');
     }
